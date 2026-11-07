@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Rock Paper Scissors</title>
+<style>
+:root{--bg:#f4f1ea;--card:#fff;--ink:#22223b;--mute:#7a7a8c;--line:#e3dfd3;--a:#e63946;--b:#1d7fd6;--acc:#6c4ff0;--ok:#2a9d5c;--no:#d6455d;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#15151f;--card:#201f2e;--ink:#f0eefc;--mute:#9a98b0;--line:#33324a;--a:#ff6b78;--b:#5fb0ff;--acc:#8f7bff;--ok:#4fd68a;--no:#ff7a90;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#15151f;--card:#201f2e;--ink:#f0eefc;--mute:#9a98b0;--line:#33324a;--a:#ff6b78;--b:#5fb0ff;--acc:#8f7bff;--ok:#4fd68a;--no:#ff7a90;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;display:flex;justify-content:center;min-height:100vh}
+.app{width:100%;max-width:440px;padding:16px;display:flex;flex-direction:column;gap:12px}
+h1{margin:4px 0 0;text-align:center;font-size:1.6rem}
+.seg{display:flex;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:4px;gap:4px}
+.seg button{flex:1;border:0;background:none;color:var(--mute);padding:9px 4px;border-radius:9px;font:600 .88rem inherit;font-family:inherit;cursor:pointer}
+.seg button.on{background:var(--acc);color:#fff}
+.row{display:flex;gap:8px;align-items:center}
+.row label{font-size:.75rem;color:var(--mute);width:54px}
+.row .seg{flex:1}
+.score{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:stretch}
+.score .p{background:var(--card);border:1px solid var(--line);border-radius:14px;text-align:center;padding:8px 4px;font-size:.78rem;color:var(--mute)}
+.score .p b{display:block;font-size:2rem;line-height:1.1;color:var(--ink)}
+#pa b{color:var(--a)}#pb b{color:var(--b)}
+.score .mid{align-self:center;font-size:.72rem;color:var(--mute);text-align:center;min-width:48px}
+.arena{background:var(--card);border:1px solid var(--line);border-radius:18px;display:grid;grid-template-columns:1fr 1fr;padding:18px 8px;text-align:center}
+.hand{font-size:clamp(3.4rem,20vw,5.2rem);line-height:1.1;transition:transform .2s}
+.hand.l{transform:scaleX(-1)}
+.hand.shake{animation:shake .3s ease-in-out infinite alternate}
+.hand.l.shake{animation:shakeL .3s ease-in-out infinite alternate}
+.hand.win{filter:drop-shadow(0 0 14px #ffc83d);transform:scale(1.15)}
+.hand.l.win{transform:scaleX(-1) scale(1.15)}
+.hand.lose{opacity:.45}
+@keyframes shake{from{transform:translateY(-14px) rotate(-8deg)}to{transform:translateY(10px) rotate(8deg)}}
+@keyframes shakeL{from{transform:scaleX(-1) translateY(-14px) rotate(-8deg)}to{transform:scaleX(-1) translateY(10px) rotate(8deg)}}
+.name{font-size:.8rem;color:var(--mute);margin-top:4px}
+#status{text-align:center;font-weight:700;min-height:1.5em}
+.dots{display:flex;gap:5px;justify-content:center;min-height:12px}
+.dots i{width:10px;height:10px;border-radius:50%;background:var(--mute);opacity:.5}
+.dots i.W{background:var(--ok);opacity:1}.dots i.L{background:var(--no);opacity:1}
+.choices{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.choices button{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 4px;font-size:2.2rem;cursor:pointer;color:var(--ink);font-family:inherit}
+.choices button span{display:block;font-size:.75rem;color:var(--mute);font-weight:600;margin-top:2px}
+.choices button:active{transform:scale(.94)}
+.choices button:disabled{opacity:.4}
+.actions{display:flex;gap:8px}
+.actions button{flex:1;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:11px 4px;border-radius:12px;font:600 .85rem inherit;font-family:inherit;cursor:pointer}
+.actions .pri{background:var(--acc);color:#fff;border-color:var(--acc)}
+.tot{text-align:center;font-size:.75rem;color:var(--mute)}
+</style>
+</head>
+<body>
+<div class="app">
+  <h1>✊ ✋ ✌️ Rock Paper Scissors</h1>
+  <div class="seg" id="mode"><button data-v="friend">👫 Friend</button><button data-v="bot" class="on">🤖 Robot</button></div>
+  <div class="row" id="lvlrow"><label>Robot</label><div class="seg" id="level"><button data-v="rand">Random</button><button data-v="smart" class="on">Smart</button></div></div>
+  <div class="row"><label>Match</label><div class="seg" id="best"><button data-v="1">Best of 1</button><button data-v="3" class="on">Best of 3</button><button data-v="5">Best of 5</button><button data-v="0">Endless</button></div></div>
+  <div class="score">
+    <div class="p" id="pa"><span id="na">You</span><b id="sa">0</b></div>
+    <div class="mid" id="mid"></div>
+    <div class="p" id="pb"><span id="nb">Robot</span><b id="sb">0</b></div>
+  </div>
+  <div class="arena">
+    <div><div class="hand" id="ha">❔</div><div class="name" id="la">You</div></div>
+    <div><div class="hand l" id="hb">❔</div><div class="name" id="lb">Robot</div></div>
+  </div>
+  <div id="status">Choose your move</div>
+  <div class="dots" id="dots"></div>
+  <div class="choices" id="choices">
+    <button data-k="R" aria-label="Rock">✊<span>Rock</span></button>
+    <button data-k="P" aria-label="Paper">✋<span>Paper</span></button>
+    <button data-k="S" aria-label="Scissors">✌️<span>Scissors</span></button>
+  </div>
+  <div class="actions"><button id="newm" class="pri">New match</button><button id="snd">🔊</button><button id="reset">Reset all</button></div>
+  <div class="tot" id="tot"></div>
+</div>
+<script>
+const E={R:'✊',P:'✋',S:'✌️'},NM={R:'Rock',P:'Paper',S:'Scissors'},BEATS={R:'S',P:'R',S:'P'},KEYS=['R','P','S'];
+let S={mode:'bot',level:'smart',best:'3',sound:true,tot:{w:0,l:0,d:0}};
+try{const s=JSON.parse(localStorage.getItem('rps')||'null');if(s)S=Object.assign(S,s)}catch(e){}
+const $=id=>document.getElementById(id);
+const save=()=>{try{localStorage.setItem('rps',JSON.stringify(S))}catch(e){}};
+let ms,matchOver,locked,p1,hist,pm,ac;
+function beep(f,d=.1){if(!S.sound)return;try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();const o=ac.createOscillator(),g=ac.createGain();o.frequency.value=f;g.gain.value=.08;o.connect(g);g.connect(ac.destination);o.start();g.gain.exponentialRampToValueAtTime(.0001,ac.currentTime+d);o.stop(ac.currentTime+d)}catch(e){}}
+const target=()=>{const n=+S.best;return n?Math.ceil(n/2):0};
+const counter=m=>KEYS.find(k=>BEATS[k]===m);
+function botPick(){
+ if(S.level==='rand'||pm.length<3)return KEYS[Math.floor(Math.random()*3)];
+ let guess;
+ if(Math.random()<.6){
+  const last=pm[pm.length-1],c={R:0,P:0,S:0};
+  for(let i=0;i<pm.length-1;i++)if(pm[i]===last)c[pm[i+1]]++;
+  guess=KEYS.reduce((a,k)=>c[k]>c[a]?k:a,'R');
+  if(!c[guess])guess=null}
+ if(!guess){const c={R:0,P:0,S:0};pm.forEach(m=>c[m]++);guess=KEYS.reduce((a,k)=>c[k]>c[a]?k:a,'R')}
+ return Math.random()<.15?KEYS[Math.floor(Math.random()*3)]:counter(guess)}
+function names(){const bot=S.mode==='bot';$('na').textContent=$('la').textContent=bot?'You':'Player 1';$('nb').textContent=$('lb').textContent=bot?'Robot':'Player 2'}
+function setHands(a,b,cls){const ha=$('ha'),hb=$('hb');ha.textContent=a;hb.textContent=b;ha.className='hand '+(cls||'');hb.className='hand l '+(cls||'')}
+function render(){
+ $('sa').textContent=ms.a;$('sb').textContent=ms.b;
+ const t=target();$('mid').textContent=t?'First to '+t:'Endless';
+ $('dots').innerHTML=hist.slice(-10).map(r=>'<i class="'+r+'"></i>').join('');
+ $('lvlrow').style.display=S.mode==='bot'?'':'none';
+ $('tot').textContent=S.mode==='bot'?'All-time vs Robot: '+S.tot.w+' W · '+S.tot.l+' L · '+S.tot.d+' D':'';
+ document.querySelectorAll('#choices button').forEach(b=>b.disabled=locked||matchOver);
+ $('newm').style.outline=matchOver?'3px solid #ffc83d':'none'}
+function newMatch(){ms={a:0,b:0};matchOver=false;locked=false;p1=null;hist=[];names();setHands('❔','❔');$('status').textContent=S.mode==='bot'?'Choose your move':'Player 1: choose your move';render()}
+function choose(k){
+ if(locked||matchOver)return;beep(500,.06);
+ if(S.mode==='bot'){
+  locked=true;render();setHands('✊','✊','shake');
+  const words=['Rock…','Paper…','Scissors…'];let i=0;$('status').textContent=words[0];
+  const iv=setInterval(()=>{i++;if(i<3){$('status').textContent=words[i];beep(300+i*80,.08)}else{clearInterval(iv);const bp=botPick();pm.push(k);reveal(k,bp)}},320)}
+ else if(!p1){p1=k;$('status').textContent='🔒 Locked in. Player 2: choose your move';setHands('🔒','❔')}
+ else{const a=p1;p1=null;locked=true;render();setHands('✊','✊','shake');$('status').textContent='Shoot!';setTimeout(()=>reveal(a,k),600)}}
+function reveal(a,b){
+ setHands(E[a],E[b]);const bot=S.mode==='bot';
+ let r='D';if(a!==b)r=BEATS[a]===b?'W':'L';
+ hist.push(r);
+ const ha=$('ha'),hb=$('hb');
+ if(r==='W'){ms.a++;ha.classList.add('win');hb.classList.add('lose')}
+ if(r==='L'){ms.b++;hb.classList.add('win');ha.classList.add('lose')}
+ if(bot){if(r==='W')S.tot.w++;else if(r==='L')S.tot.l++;else S.tot.d++;save()}
+ const A=bot?'You':'Player 1',B=bot?'Robot':'Player 2';
+ let txt=r==='D'?'🤝 Draw! Both chose '+NM[a]:(r==='W'?A:B)+' win'+(bot&&r==='W'?'':'s')+'! '+NM[r==='W'?a:b]+' beats '+NM[r==='W'?b:a];
+ if(r==='W')beep(760,.25);else if(r==='L')beep(220,.25);else beep(400,.15);
+ const t=target();
+ if(t&&(ms.a>=t||ms.b>=t)){matchOver=true;txt='🏆 '+(ms.a>=t?A:B)+(bot&&ms.a>=t?' win':' wins')+' the match!';setTimeout(()=>beep(900,.4),250)}
+ $('status').textContent=txt;locked=false;render()}
+$('choices').onclick=e=>{const b=e.target.closest('button');if(b)choose(b.dataset.k)};
+$('newm').onclick=()=>{pm=[];newMatch()};
+$('reset').onclick=()=>{S.tot={w:0,l:0,d:0};save();pm=[];newMatch()};
+$('snd').onclick=()=>{S.sound=!S.sound;$('snd').textContent=S.sound?'🔊':'🔇';save();beep(600)};
+function seg(id,key,cb){const el=$(id);const set=()=>el.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.v===String(S[key])));set();el.onclick=e=>{const v=e.target.dataset&&e.target.dataset.v;if(v===undefined)return;S[key]=v;save();set();cb()}}
+seg('mode','mode',()=>{pm=[];newMatch()});seg('level','level',()=>{pm=[];newMatch()});seg('best','best',()=>newMatch());
+$('snd').textContent=S.sound?'🔊':'🔇';
+pm=[];newMatch();
+</script>
+</body>
+</html>
